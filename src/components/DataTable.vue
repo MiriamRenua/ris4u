@@ -107,7 +107,9 @@
         <PreviewPanel
           :selectedEntry="selectedEntry"
           :width="previewWidth"
+          :selectedDocument="selectedDocument"
           class="preview-panel"
+          @document-selected="(doc) => selectedDocument = selectedDocument === doc ? null : doc"
         />
       </div>
     </Transition>
@@ -227,6 +229,7 @@ const handleRowClick = (entry: TableEntry) => {
     selectedEntry.value = null
   } else {
     selectedEntry.value = entry
+    selectedDocument.value = null // Reset document selection when selecting new entry
     // Reset widths when selecting new entry
     tableWidth.value = defaultTableWidth
     previewWidth.value = Math.max(window.innerWidth - defaultTableWidth - 10, minPreviewWidth)
@@ -260,6 +263,9 @@ const startResize = (e: MouseEvent) => {
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
 }
+
+// Add this after the existing refs
+const selectedDocument = ref<string | null>(null)
 </script>
 
 <style scoped>
