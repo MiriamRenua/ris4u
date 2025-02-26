@@ -1,5 +1,5 @@
 <template>
-  <div class="data-table">
+  <div class="data-table" :style="{ width: width + 'px' }">
     <h2 class="table-title">{{ ortsteil }}</h2>
     
     <div class="table-container">
@@ -55,20 +55,14 @@
                 />
               </div>
             </th>
-            <th>
-              <div class="header-content">
-                <div>Zusammenfassung Dokumente</div>
-                <input 
-                  v-model="filters.zusammenfassung"
-                  placeholder="Filter..."
-                  class="header-filter"
-                />
-              </div>
-            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="entry in paginatedData" :key="entry.vorgangsnummer">
+          <tr v-for="entry in paginatedData" 
+              :key="entry.vorgangsnummer"
+              @click="handleRowClick(entry)"
+              :class="{ selected: selectedEntry?.vorgangsnummer === entry.vorgangsnummer }"
+              class="table-row">
             <td>{{ entry.vorgangsnummer }}</td>
             <td>{{ entry.datum }}</td>
             <td>{{ entry.titel }}</td>
@@ -82,13 +76,11 @@
                 </span>
               </div>
             </td>
-            <td>{{ entry.zusammenfassung }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Pagination -->
     <div class="pagination">
       <button 
         :disabled="currentPage === 1"
@@ -116,9 +108,13 @@ import type { TableEntry, SortDirection, SortKey } from '../types/types'
 const props = defineProps<{
   data: TableEntry[]
   ortsteil: string
+  selectedEntry: TableEntry | null
+  width: number
 }>()
 
-console.log('Props data:', props.data)
+const emit = defineEmits<{
+  select: [entry: TableEntry | null]
+}>()
 
 const itemsPerPage = 10
 const currentPage = ref(1)
@@ -128,7 +124,6 @@ const filters = ref({
   vorgangsnummer: '',
   datum: '',
   titel: '',
-  zusammenfassung: '',
   dokumente: ''
 })
 
@@ -143,14 +138,11 @@ const filteredData = computed(() => {
     const matchDatum = item.datum
       .toLowerCase()
       .includes(filters.value.datum.toLowerCase())
-    const matchZusammenfassung = item.zusammenfassung
-      .toLowerCase()
-      .includes(filters.value.zusammenfassung.toLowerCase())
     const matchDokumente = filters.value.dokumente === '' || 
       item.dokumente.some(dok => 
         dok.toLowerCase().includes(filters.value.dokumente.toLowerCase())
       )
-    return matchVorgangsnummer && matchTitel && matchDatum && matchZusammenfassung && matchDokumente
+    return matchVorgangsnummer && matchTitel && matchDatum && matchDokumente
   })
 })
 
@@ -212,6 +204,16 @@ const getRandomColor = (dokName: string) => {
   const color = colors[Math.floor(Math.random() * colors.length)]
   colorCache.set(dokName, color)
   return color
+}
+
+const handleRowClick = (entry: TableEntry) => {
+  if (props.selectedEntry?.vorgangsnummer === entry.vorgangsnummer) {
+    // Deselect if clicking the same row
+    emit('select', null)
+  } else {
+    // Select new row
+    emit('select', entry)
+  }
 }
 </script>
 
@@ -332,6 +334,26 @@ tr:hover {
 .page-info {
   color: #4b5563;
   font-size: 0.875rem;
+}
+
+.table-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.table-row:hover {
+  background-color: #f3f4f6;
+}
+
+.table-row.selected {
+  background-color: #e5e7eb;
+}
+
+.zusammenfassung-cell {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @media (max-width: 768px) {
