@@ -45,7 +45,16 @@
                 />
               </div>
             </th>
-            <th>Dokumente</th>
+            <th>
+              <div class="header-content">
+                <div>Dokumente</div>
+                <input 
+                  v-model="filters.dokumente"
+                  placeholder="Filter..."
+                  class="header-filter"
+                />
+              </div>
+            </th>
             <th>
               <div class="header-content">
                 <div>Zusammenfassung Dokumente</div>
@@ -64,11 +73,14 @@
             <td>{{ entry.datum }}</td>
             <td>{{ entry.titel }}</td>
             <td>
-              <ul>
-                <li v-for="(dok, index) in entry.dokumente" :key="index">
+              <div class="document-list">
+                <span v-for="(dok, index) in entry.dokumente" 
+                      :key="index" 
+                      class="document-badge"
+                      :style="{ backgroundColor: getRandomColor(dok) }">
                   {{ dok }}
-                </li>
-              </ul>
+                </span>
+              </div>
             </td>
             <td>{{ entry.zusammenfassung }}</td>
           </tr>
@@ -116,7 +128,8 @@ const filters = ref({
   vorgangsnummer: '',
   datum: '',
   titel: '',
-  zusammenfassung: ''
+  zusammenfassung: '',
+  dokumente: ''
 })
 
 const filteredData = computed(() => {
@@ -133,7 +146,11 @@ const filteredData = computed(() => {
     const matchZusammenfassung = item.zusammenfassung
       .toLowerCase()
       .includes(filters.value.zusammenfassung.toLowerCase())
-    return matchVorgangsnummer && matchTitel && matchDatum && matchZusammenfassung
+    const matchDokumente = filters.value.dokumente === '' || 
+      item.dokumente.some(dok => 
+        dok.toLowerCase().includes(filters.value.dokumente.toLowerCase())
+      )
+    return matchVorgangsnummer && matchTitel && matchDatum && matchZusammenfassung && matchDokumente
   })
 })
 
@@ -174,172 +191,165 @@ function sort(key: SortKey) {
     sortDirection.value = 'asc'
   }
 }
+
+// Add this new function for document badge colors
+const colorCache = new Map()
+const getRandomColor = (dokName: string) => {
+  if (colorCache.has(dokName)) {
+    return colorCache.get(dokName)
+  }
+  
+  const colors = [
+    '#3B82F6', // blue
+    '#10B981', // green
+    '#8B5CF6', // purple
+    '#F59E0B', // amber
+    '#EF4444', // red
+    '#EC4899', // pink
+    '#14B8A6', // teal
+  ]
+  
+  const color = colors[Math.floor(Math.random() * colors.length)]
+  colorCache.set(dokName, color)
+  return color
+}
 </script>
 
 <style scoped>
 .data-table {
-  margin: 20px;
-  max-width: 1200px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   margin: 2rem auto;
-  padding: 0 1rem;
+  padding: 1.5rem;
 }
 
 .table-title {
-  color: #2c3e50;
-  font-size: 1.8rem;
+  color: #1f2937;
+  font-size: 1.5rem;
   margin-bottom: 1.5rem;
   font-weight: 600;
 }
 
 .table-container {
-  background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+  border: 1px solid #e5e7eb;
 }
 
 table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin: 0;
-}
-
-th, td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 0.95rem;
 }
 
 th {
-  background-color: #f8fafc;
+  background-color: #f9fafb;
   font-weight: 600;
-  color: #475569;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  color: #4b5563;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-tr:last-child td {
-  border-bottom: none;
+td {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1f2937;
+  font-size: 0.875rem;
 }
 
 tr:hover {
-  background-color: #f8fafc;
-  transition: background-color 0.2s ease;
+  background-color: #f9fafb;
+}
+
+.document-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.document-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .header-content {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.header-content > div {
-  cursor: pointer;
-  user-select: none;
-  display: flex;
-  align-items: center;
   gap: 0.5rem;
-  transition: color 0.2s ease;
-}
-
-.header-content > div:hover {
-  color: #2563eb;
 }
 
 .header-filter {
   padding: 0.5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
-  width: calc(100% - 1rem);
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  color: #475569;
+  font-size: 0.875rem;
+  width: 100%;
 }
 
 .header-filter:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.header-filter::placeholder {
-  color: #94a3b8;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-li {
-  margin-bottom: 0.25rem;
-  color: #475569;
-}
-
-li:last-child {
-  margin-bottom: 0;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .pagination {
-  margin-top: 1.5rem;
   display: flex;
-  gap: 1rem;
   align-items: center;
   justify-content: center;
-  padding: 1rem 0;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 .pagination-button {
   padding: 0.5rem 1rem;
-  border: none;
-  background-color: #2563eb;
+  background-color: #3B82F6;
   color: white;
-  cursor: pointer;
+  border: none;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .pagination-button:hover:not(:disabled) {
-  background-color: #1d4ed8;
-  transform: translateY(-1px);
+  background-color: #2563eb;
 }
 
 .pagination-button:disabled {
-  background-color: #94a3b8;
+  background-color: #93c5fd;
   cursor: not-allowed;
-  opacity: 0.7;
 }
 
 .page-info {
-  color: #475569;
-  font-size: 0.95rem;
-  font-weight: 500;
+  color: #4b5563;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 768px) {
   .data-table {
-    margin: 1rem;
-    padding: 0;
+    padding: 1rem;
   }
 
-  th, td {
+  td, th {
     padding: 0.75rem;
-    font-size: 0.9rem;
   }
 
-  .pagination {
-    flex-direction: column;
-    gap: 0.75rem;
+  .document-list {
+    gap: 0.25rem;
   }
 
-  .pagination-button {
-    width: 100%;
+  .document-badge {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
   }
 }
 </style>
