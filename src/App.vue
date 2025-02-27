@@ -12,14 +12,12 @@
         <h1>GemeindeKompass – Orientierung für Bürger</h1>
       </div>
     </div>
-    <div class="app">
-      <DataTable
-        v-for="ortsteil in ortsteile"
-        :key="ortsteil"
-        :data="getDataForOrtsteil(ortsteil)"
-        :ortsteil="ortsteil"
-      />
-    </div>
+    <DataTable
+      v-for="ortsteil in ortsteile"
+      :key="ortsteil"
+      :data="getDataForOrtsteil(ortsteil)"
+      :ortsteil="ortsteil"
+    />
   </div>
 </template>
 
@@ -53,7 +51,12 @@ body {
 }
 
 .app {
-  max-width: 1200px;
+  margin: 0;
+  padding: 0;
+}
+
+.content {
+  max-width: 100%;
   margin: 0 auto;
   padding: 40px 20px;
 }
@@ -62,7 +65,8 @@ body {
   position: relative;
   width: 100%;
   height: 300px;
-  margin-bottom: 0;
+  margin-bottom: 40px;
+  border-radius: 0 0 20px 20px;
   overflow: hidden;
   background: linear-gradient(135deg, #1e40af, #3b82f6);
 }
@@ -73,11 +77,6 @@ body {
   object-fit: cover;
   opacity: 0.8;
   transition: opacity 0.3s ease;
-}
-
-.banner-image[data-error="true"],
-.banner-image:not([src]) {
-  display: none;
 }
 
 .banner-overlay {
