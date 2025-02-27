@@ -1,5 +1,5 @@
 <template>
-  <div class="app">
+  <div>
     <div class="banner">
       <img 
         :src="imgUrl" 
@@ -12,12 +12,14 @@
         <h1>GemeindeKompass – Orientierung für Bürger</h1>
       </div>
     </div>
-    <DataTable
-      v-for="ortsteil in ortsteile"
-      :key="ortsteil"
-      :data="getDataForOrtsteil(ortsteil)"
-      :ortsteil="ortsteil"
-    />
+    <div class="app">
+      <DataTable
+        v-for="ortsteil in ortsteile"
+        :key="ortsteil"
+        :data="getDataForOrtsteil(ortsteil)"
+        :ortsteil="ortsteil"
+      />
+    </div>
   </div>
 </template>
 
@@ -53,15 +55,14 @@ body {
 .app {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px 40px;
+  padding: 40px 20px;
 }
 
 .banner {
   position: relative;
   width: 100%;
   height: 300px;
-  margin-bottom: 40px;
-  border-radius: 0 0 20px 20px;
+  margin-bottom: 0;
   overflow: hidden;
   background: linear-gradient(135deg, #1e40af, #3b82f6);
 }
