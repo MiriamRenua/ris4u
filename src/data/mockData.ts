@@ -20,6 +20,14 @@ const mockZusammenfassungen = [
 function generateMockData(): TableEntry[] {
     const data: TableEntry[] = [];
     
+    // Generate document arrays
+    const beschluesse = Array.from({ length: 5 }, (_, i) => 
+        `Beschluss_${(i + 1).toString().padStart(2, '0')}`
+    );
+    const anlagen = Array.from({ length: 5 }, (_, i) => 
+        `Anlage_${(i + 1).toString().padStart(2, '0')}`
+    );
+    
     ortsteile.forEach(ortsteil => {
         for (let i = 1; i <= 25; i++) {
             const date = new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
@@ -30,11 +38,20 @@ function generateMockData(): TableEntry[] {
             ].join('.');
             
             const titleIndex = Math.floor(Math.random() * mockTitles.length);
+            
+            // Select exactly one random Beschluss
+            const selectedBeschluss = beschluesse[Math.floor(Math.random() * beschluesse.length)];
+            
+            // Select 1-3 random Anlagen
+            const selectedAnlagen = anlagen
+                .sort(() => Math.random() - 0.5)
+                .slice(0, Math.floor(Math.random() * 3) + 1);
+            
             const entry: TableEntry = {
                 vorgangsnummer: `${ortsteil.substring(0, 2)}-${2023}-${i.toString().padStart(3, '0')}`,
                 datum: formattedDate,
                 titel: mockTitles[titleIndex],
-                dokumente: [`Dokument_${i}_1.pdf`, `Dokument_${i}_2.pdf`],
+                dokumente: [selectedBeschluss, ...selectedAnlagen],
                 zusammenfassung: mockZusammenfassungen[titleIndex],
                 ortsteil: ortsteil
             };

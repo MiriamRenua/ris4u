@@ -7,7 +7,11 @@
           <div class="metadata">
             <p>{{ selectedEntry.vorgangsnummer }} | {{ selectedEntry.datum }}</p>
           </div>
-          <div class="zusammenfassung">
+          <div 
+            ref="summaryRef"
+            class="zusammenfassung"
+            :class="{ 'truncated': shouldTruncate }"
+          >
             {{ selectedEntry.zusammenfassung }}
           </div>
           <div class="documents">
@@ -44,8 +48,9 @@
 <script setup lang="ts">
 import { TableEntry } from '../types/types'
 import DocumentPreview from './DocumentPreview.vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   selectedEntry: TableEntry | null
   width: number
   selectedDocument: string | null
@@ -54,6 +59,46 @@ defineProps<{
 defineEmits<{
   (e: 'document-selected', document: string): void
 }>()
+
+const summaryRef = ref<HTMLElement | null>(null)
+const shouldTruncate = ref(false)
+
+const checkTruncation = async () => {
+  await nextTick()
+  if (!summaryRef.value) return
+  
+  const container = summaryRef.value.closest('.preview-panel')
+  if (!container) return
+
+  const containerHeight = container.clientHeight
+  const docsSection = container.querySelector('.documents')
+  const docsSectionHeight = docsSection?.clientHeight || 0
+  const metadataSection = container.querySelector('.metadata')
+  const metadataHeight = metadataSection?.clientHeight || 0
+  const titleSection = container.querySelector('h3')
+  const titleHeight = titleSection?.clientHeight || 0
+  const padding = 48 // Sum of vertical paddings and margins
+
+  const availableHeight = containerHeight - docsSectionHeight - metadataHeight - titleHeight - padding
+  const contentHeight = summaryRef.value.scrollHeight
+
+  shouldTruncate.value = contentHeight > availableHeight
+}
+
+// Watch for changes that might affect layout
+watch(() => props.selectedDocument, checkTruncation)
+watch(() => props.selectedEntry, checkTruncation)
+watch(() => props.width, checkTruncation)
+
+onMounted(() => {
+  checkTruncation()
+  
+  // Create ResizeObserver to check truncation on container resize
+  const resizeObserver = new ResizeObserver(checkTruncation)
+  if (summaryRef.value) {
+    resizeObserver.observe(summaryRef.value.closest('.preview-panel') || summaryRef.value)
+  }
+})
 </script>
 
 <style>
@@ -90,6 +135,8 @@ defineEmits<{
   height: 100%;
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+  position: relative;
 }
 
 h3 {
@@ -108,8 +155,8 @@ h4 {
 
 .metadata {
   color: #6b7280;
-  margin-bottom: 1.5rem;
   font-size: 0.875rem;
+  margin: 0;
 }
 
 .zusammenfassung {
@@ -117,11 +164,34 @@ h4 {
   line-height: 1.6;
   color: #374151;
   font-size: 0.875rem;
+  position: relative;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.zusammenfassung.truncated {
+  mask-image: linear-gradient(to bottom, black calc(100% - 2rem), transparent 100%);
+  padding-bottom: 1.5rem;
+}
+
+.zusammenfassung.truncated::after {
+  content: "...";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  color: #374151;
+  background: white;
+  padding: 0 0.5rem;
+  font-weight: bold;
 }
 
 .documents {
-  margin-top: auto;
-  padding-top: 1.5rem;
+  margin-top: 0;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
 
 .document-list {
